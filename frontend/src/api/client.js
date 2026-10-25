@@ -1,5 +1,6 @@
-// Base API URL — reads from Vite env variable at build time
-const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:8080';
+// Base API URL — reads from Vite env variable at build time (e.g. https://arcade-backend.onrender.com)
+// In local dev, defaults to '' so Vite's dev server proxies /api to http://localhost:8080
+const API_BASE = import.meta.env.VITE_API_URL || '';
 
 async function request(path, options = {}) {
   const url = `${API_BASE}${path}`;
