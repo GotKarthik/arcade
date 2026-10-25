@@ -13,7 +13,7 @@ export default function Navbar() {
             to="/"
             className={`nav-link ${pathname === '/' ? 'active' : ''}`}
           >
-            Games
+            Catalog
           </Link>
         </li>
         <li>
@@ -22,6 +22,30 @@ export default function Navbar() {
             className={`nav-link ${pathname.startsWith('/games/number-detective') ? 'active' : ''}`}
           >
             Number Detective
+          </Link>
+        </li>
+        <li>
+          <Link
+            to="/games/rock-paper-scissors"
+            className={`nav-link ${pathname.startsWith('/games/rock-paper-scissors') ? 'active' : ''}`}
+          >
+            RPS
+          </Link>
+        </li>
+        <li>
+          <Link
+            to="/games/tic-tac-toe"
+            className={`nav-link ${pathname.startsWith('/games/tic-tac-toe') ? 'active' : ''}`}
+          >
+            Tic-Tac-Toe
+          </Link>
+        </li>
+        <li>
+          <Link
+            to="/games/memory-match"
+            className={`nav-link ${pathname.startsWith('/games/memory-match') ? 'active' : ''}`}
+          >
+            Memory Match
           </Link>
         </li>
       </ul>

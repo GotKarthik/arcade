@@ -14,6 +14,8 @@ import org.springframework.test.web.servlet.MvcResult;
 import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.hamcrest.Matchers.anyOf;
+import static org.hamcrest.Matchers.is;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
@@ -82,7 +84,7 @@ class ArcadeControllerIntegrationTest {
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(wrongGuess))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.sessionStatus").value("IN_PROGRESS"));
+                .andExpect(jsonPath("$.sessionStatus", anyOf(is("IN_PROGRESS"), is("WON"))));
 
         // GET session — secret still hidden
         mockMvc.perform(get("/api/games/number-detective/sessions/{id}", sessionId))

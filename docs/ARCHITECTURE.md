@@ -2,67 +2,38 @@
 
 ## Overview
 
-Arcade is a modular monolith. The backend is a single Spring Boot 3 application. The frontend is a separate Vite+React SPA. They communicate exclusively via REST/JSON.
+Arcade is a modular monolith. The backend is a single Spring Boot 3 application with independent game domain services and JPA repositories. The frontend is a Vite + React SPA. Communication is exclusively via REST/JSON.
 
 ```
 Browser (React SPA)
     ↓ HTTP/JSON (REST API)
 Spring Boot 3 (port 8080)
-    ├── Controllers (HTTP layer)
-    ├── Services (game rules)
-    ├── Repositories (JPA)
-    └── PostgreSQL (persistence)
+    ├── ArcadeController (Catalog + 4 Games)
+    ├── Services:
+    │   ├── NumberDetectiveService
+    │   ├── RockPaperScissorsService
+    │   ├── TicTacToeService
+    │   └── MemoryMatchService
+    ├── Repositories (JPA):
+    │   ├── GameResultRepository
+    │   ├── RpsMatchRepository
+    │   ├── TttMatchRepository
+    │   └── MemoryMatchRepository
+    └── PostgreSQL (Flyway V1 & V2)
 ```
 
-## Backend Modules
+## Backend Modules & Responsibilities
 
-| Package | Responsibility |
-|---|---|
-| `controller` | HTTP endpoints, request validation, response shaping |
-| `service` | Game rules, session lifecycle, business logic |
-| `model` | Domain objects: `NumberDetectiveSession`, `GameStatus`, `GameResult` |
-| `repository` | JPA + Flyway: `GameResultRepository` |
-| `dto` | API contracts: `SessionResponse`, `GuessRequest/Response`, `LeaderboardEntry` |
-| `config` | CORS, OpenAPI/Swagger |
-| `exception` | Domain exceptions, `GlobalExceptionHandler` |
-
-## Session Lifecycle
-
-```
-POST /sessions → IN_PROGRESS session (in-memory ConcurrentHashMap)
-POST /guesses  → TOO_LOW / TOO_HIGH / CORRECT
-               → If WON or LOST: persist to game_results table
-POST /restart  → New session ID, fresh state
-GET  /sessions/{id} → Public view (secret hidden while IN_PROGRESS)
-```
-
-## Key Design Decisions
-
-### In-memory active sessions
-Active sessions use a `ConcurrentHashMap`. Sessions do not survive backend restarts. This keeps the first release simple. See `docs/decisions/001-in-memory-sessions.md`.
-
-### Secret confidentiality
-`SecretNumber` is never included in API responses while the game is `IN_PROGRESS`. It is revealed only in `WON` or `LOST` state. This is enforced in `SessionResponse` and `GuessResponse` DTOs.
-
-### Server-authoritative logic
-All game rules (attempt limits, win/loss detection) live in `NumberDetectiveService`. The frontend renders backend-provided state only.
-
-### Flyway migrations
-Schema is managed by Flyway. No DDL in application code. `ddl-auto=validate` in production.
-
-### SecureRandom
-Session IDs use UUID v4. The secret number uses `java.security.SecureRandom`.
+| Service | Session State | Persistence Entity | Anti-Cheat / Authority |
+|---|---|---|---|
+| `NumberDetectiveService` | `NumberDetectiveSession` | `GameResult` (`game_results`) | Secret number masked as `null` until completion. Server evaluates `TOO_LOW`/`TOO_HIGH`. |
+| `RockPaperScissorsService` | `RpsSession` | `RpsMatch` (`rps_matches`) | Computer move generated on server via `SecureRandom`. Authoritative 5-round scoring. |
+| `TicTacToeService` | `TttSession` | `TttMatch` (`ttt_matches`) | Server owns 3x3 board array, enforces turn order (X then O), checks 8 winning lines & draws. |
+| `MemoryMatchService` | `MemorySession` | `MemoryMatch` (`memory_matches`) | Card mapping strictly concealed; face-down cards return `null` symbols. Server-side timestamps. |
 
 ## Frontend Architecture
 
-- **React 18** with functional components and hooks
-- **React Router 6** for client-side routing
-- **Custom hook** `useNumberDetective`: all game state and API calls
-- **API client** `src/api/client.js`: wraps fetch, reads `VITE_API_URL`
-- **No Redux**: state is local to the game hook
-
-## Scalability Limitations
-
-- Single backend instance assumed (ConcurrentHashMap is not distributed)
-- No authentication in this release
-- Leaderboard returns all wins (add pagination before scale)
+- **React 18** functional components with hooks.
+- **React Router 6** client-side routing (`/`, `/games/number-detective`, `/games/rock-paper-scissors`, `/games/tic-tac-toe`, `/games/memory-match`).
+- **Unified Design System (`global.css`):** Consistent tokens, color palette, glassmorphism, responsive grids, and micro-animations.
+- **REST Client (`client.js`):** Modular async API layer reading `VITE_API_URL`.

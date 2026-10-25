@@ -4,38 +4,48 @@
 
 ### Phase 1: Environment Inspection & Architectural Scaffolding
 - Inspected available tooling: Java 21 OpenJDK, Maven 3.9, Node.js v20, npm, and PostgreSQL 14+.
-- Created project directory structure:
-  - `backend/`: Spring Boot 3 + Java 21 modular monolith with JPA, Flyway, and Springdoc OpenAPI.
-  - `frontend/`: React 18, Vite, React Router 6, and Vanilla CSS design system.
-  - `docs/`: Comprehensive technical architecture, API specs, database models, testing docs.
+- Created project directory structure for Spring Boot backend, Vite/React frontend, and Flyway database migrations.
 
 ### Phase 2: Backend Implementation & Automated Testing
-- Implemented Flyway migration `V1__create_game_results_table.sql`.
-- Built domain entities, records, and repositories:
-  - `GameResult` entity and `GameResultRepository` with ranked query.
-  - DTOs: `SessionResponse`, `GuessRequest`, `GuessResponse`, `LeaderboardEntry`.
-  - Service: `NumberDetectiveService` enforcing 7-guess limit, random generation, and database recording.
-  - REST Controller: `ArcadeController` with OpenAPI annotations.
-- Implemented automated tests:
-  - `NumberDetectiveServiceTest`: 13 unit tests covering rule validation, secret masking, and win/loss states.
-  - `ArcadeControllerIntegrationTest`: 9 Spring MockMvc integration tests.
-  - Total: 22 tests passing with 100% success rate.
+- Built domain entities, records, repositories, and Number Detective game service.
+- Implemented Flyway migration `V1__initial_schema.sql`.
+- 22 backend tests passing with 100% success rate.
 
 ### Phase 3: Frontend Implementation & Visual Testing
-- Configured Vite project with React 18 and Vitest testing suite.
-- Designed responsive retro-modern theme with CSS variables, custom typography, and dynamic badge animations.
-- Implemented components:
-  - `Navbar`, `Footer`, `HomePage`, `NumberDetectivePage`.
-  - Custom hook `useNumberDetective` managing state machine, input sanitization, and leaderboard fetching.
-- Implemented 13 Vitest / React Testing Library unit tests verifying rendering, session initialization, error states, and game loop.
-- All 13 tests passed.
+- Configured Vite project with React 18, React Router 6, and Vitest testing suite.
+- Designed responsive retro-modern theme with CSS variables and micro-animations.
+- 13 frontend tests passing with 100% success rate.
 
-### Phase 4: Full-Stack Verification & End-to-End Testing
-- Started Spring Boot backend with PostgreSQL persistence.
-- Verified Flyway schema creation in database.
-- Executed automated API validation script playing an entire game via binary search, verifying secret reveal upon win and persistence to leaderboard.
-- Started Vite frontend server on port 5173.
-- Dispatched browser subagent to interactively verify user journey in live browser:
-  - Verified homepage rendering and navigation.
-  - Verified game session initialization, guess submissions, reactive feedback badges, and remaining attempt counters.
-  - Verified live leaderboard integration.
+### Phase 4: Full-Stack Verification & Deployment Prep
+- Verified live PostgreSQL persistence and API binary search game completion.
+- Dispatched browser subagent to verify user journey.
+- Created Vercel configuration files with SPA client routing rewrites.
+- Committed initial release to GitHub (`GotKarthik/arcade`).
+
+### Phase 5: Implementation of Three Additional Games
+- Implemented **Rock Paper Scissors**:
+  - `RpsMove`, `RpsRound`, `RpsSession`, `RockPaperScissorsService`, `RandomRpsMoveGenerator`, `RpsMatchRepository`.
+  - Full rule set: 5-round showdown, WIN/LOSS/DRAW evaluation, score tracking, extra round prevention, match persistence.
+  - 13 backend unit tests covering all combinations, progression, and invalid input rejections.
+- Implemented **Tic-Tac-Toe**:
+  - `TttPlayer`, `TttOutcome`, `TttSession`, `TicTacToeService`, `TttMatchRepository`.
+  - Full rule set: 3x3 board, 2-player turn order enforcement, horizontal/vertical/diagonal win detection, draw detection, persistence.
+  - 13 backend unit tests.
+- Implemented **Memory Match**:
+  - `CardInternal`, `MemoryTurnState`, `MemorySession`, `MemoryMatchService`, `RandomMemoryDeckGenerator`, `MemoryMatchRepository`.
+  - Anti-cheat state masking (face-down symbols are `null`), 4x4 card grid (8 pairs), turn mismatch handling, move counter, stopwatch duration, persistence, and leaderboard query.
+  - 13 backend unit tests.
+- Implemented `NewGamesIntegrationTest` (5 Spring MockMvc integration tests).
+- Backend suite expanded to **66 tests** — 100% passing.
+- Frontend expansion:
+  - Extended API client (`client.js`) with endpoints for all 3 games.
+  - Added CSS component styles for move buttons, 3x3 board, and 4x4 card grid.
+  - Implemented `RockPaperScissorsPage.jsx`, `TicTacToePage.jsx`, and `MemoryMatchPage.jsx`.
+  - Updated `HomePage.jsx` to render all 4 game cards.
+  - Updated `Navbar.jsx` with navigation to all 4 games.
+  - Added `NewGames.test.jsx`: 9 component tests.
+  - Frontend suite expanded to **22 tests** — 100% passing.
+  - Frontend production build (`npm run build`) succeeded with 0 errors (59KB gzip).
+- Live server verification:
+  - Ran automated Python script playing through all 4 games against running Spring Boot and PostgreSQL backend.
+  - Dispatched browser subagent to navigate to and play through all 4 games in live browser.
